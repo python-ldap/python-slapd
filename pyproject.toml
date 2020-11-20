@@ -1,0 +1,95 @@
+[build-system]
+requires = ["poetry>=1.0.0"]
+build-backend = "poetry.masonry.api"
+
+[tool]
+[tool.poetry]
+name = "slapd"
+version = "0.1"
+description = "Controls a slapd process in a pythonic way"
+license = "MIT"
+keywords = ["zodb", "orm"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Framework :: ZODB",
+]
+authors = ["python-ldap team <python-ldap@python.org>"]
+maintainers = [
+    "Éloi Rivard <eloi.rivard@aquilenet.fr>",
+]
+homepage = "https://slapd.readthedocs.io/en/latest/"
+documentation = "https://slapd.readthedocs.io/en/latest/"
+repository = "https://gitlab.com/python-ldap/python-slapd"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.6, <4"
+
+recommonmark = {version = "*", optional=true}
+sphinx = {version = "*", optional=true}
+sphinx-rtd-theme = {version = "*", optional=true}
+sphinx-issues = {version = "*", optional=true}
+
+[tool.poetry.extras]
+doc = [
+    "recommonmark",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-issues",
+]
+
+[tool.poetry.dev-dependencies]
+coverage = "*"
+pytest = "*"
+pytest-cov = "*"
+tox = "*"
+mock = "*"
+
+
+[tool.coverage.run]
+source = [
+    "tests",
+    "slapd",
+]
+
+omit = [
+    ".tox/*",
+]
+
+[tool.pytest.ini_options]
+addopts = "--durations=10 --color=yes --showlocals --full-trace --doctest-modules --doctest-glob='*.rst'"
+norecursedirs = ".tox tests/perf .eggs .git build doc"
+doctest_optionflags= "ALLOW_UNICODE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = true
+envlist = doc,py36,py37,py38,py39,coverage
+skipsdist=true
+
+[testenv]
+whitelist_externals = poetry
+commands =
+    poetry install
+    poetry run pytest {posargs}
+
+[testenv:doc]
+commands =
+    poetry install --extras doc
+    poetry run sphinx-build doc build/sphinx/html
+
+[testenv:coverage]
+commands =
+    poetry install
+    poetry run coverage erase
+    poetry run pytest --cov {posargs}
+    poetry run coverage html
+"""
