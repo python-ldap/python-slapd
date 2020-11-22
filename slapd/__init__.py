@@ -162,17 +162,17 @@ class Slapd:
         self.suffix = suffix
         self.root_cn = root_cn
         self.root_pw = root_pw
-        self.local_host = "127.0.0.1"
+        self.hostname = "127.0.0.1"
 
         self._proc = None
-        self._port = port or self._avail_tcp_port()
-        self.server_id = self._port % 4096
+        self.port = port or self._avail_tcpport()
+        self.server_id = self.port % 4096
         self.testrundir = os.path.join(
-            self.TMPDIR, "%s-%d" % (datadir_prefix or "python-ldap-test", self._port)
+            self.TMPDIR, "%s-%d" % (datadir_prefix or "python-ldap-test", self.port)
         )
         self._slapd_conf = os.path.join(self.testrundir, "slapd.d")
         self._db_directory = os.path.join(self.testrundir, "openldap-data")
-        self.ldap_uri = "ldap://%s:%d/" % (host or self.local_host, self._port)
+        self.ldap_uri = "ldap://%s:%d/" % (host or self.hostname, self.port)
         self.debug = debug
         have_ldapi = hasattr(socket, "AF_UNIX")
         if have_ldapi:
@@ -208,14 +208,6 @@ class Slapd:
     @property
     def root_dn(self):
         return "cn={self.root_cn},{self.suffix}".format(self=self)
-
-    @property
-    def hostname(self):
-        return self.local_host
-
-    @property
-    def port(self):
-        return self._port
 
     def _find_commands(self):
         self.PATH_LDAPADD = self._find_command("ldapadd")
@@ -275,13 +267,13 @@ class Slapd:
         os.rmdir(self.testrundir)
         self.logger.info("cleaned-up %s", self.testrundir)
 
-    def _avail_tcp_port(self):
+    def _avail_tcpport(self):
         """
         find an available port for TCP connection
         """
         sock = socket.socket()
         try:
-            sock.bind((self.local_host, 0))
+            sock.bind((self.hostname, 0))
             port = sock.getsockname()[1]
         finally:
             sock.close()
@@ -367,20 +359,20 @@ class Slapd:
         self.logger.info("starting slapd: %r", " ".join(slapd_args))
         self._proc = subprocess.Popen(slapd_args)
         deadline = time.monotonic() + 10
-        while True:  # pragma: no cover
-            if self._proc.poll() is not None:
+        while True:
+            if self._proc.poll() is not None:  # pragma: no cover
                 self._stopped()
                 raise RuntimeError("slapd exited before opening port")
             try:
                 self.logger.debug("slapd connection check to %s", self.default_ldap_uri)
                 self.ldapwhoami()
             except RuntimeError:
-                if time.monotonic() >= deadline:
+                if time.monotonic() >= deadline:  # pragma: no cover
                     break
                 time.sleep(0.2)
             else:
                 return
-        raise RuntimeError("slapd did not start properly")
+        raise RuntimeError("slapd did not start properly")  # pragma: no cover
 
     def start(self):
         """
@@ -390,7 +382,6 @@ class Slapd:
         if self._proc is not None:
             return
 
-        # prepare directory structure
         atexit.register(self.stop)
         self._cleanup_rundir()
         self.setup_rundir()
@@ -455,7 +446,7 @@ class Slapd:
 
     def _cli_popen(
         self, ldapcommand, extra_args=None, ldap_uri=None, stdin_data=None
-    ):  # pragma: no cover
+    ):
         if ldap_uri is None:
             ldap_uri = self.default_ldap_uri
 
