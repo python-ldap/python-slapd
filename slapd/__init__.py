@@ -111,7 +111,7 @@ class Slapd:
     :param port: The port on which the slapd server will listen to.
         If `None` a random available port will be chosen.
 
-    :param log_level: The verbosity of Slapd..
+    :param log_level: The verbosity of Slapd.
         The default value is `logging.WARNING`.
 
     :param suffix: The LDAP suffix for all objects. The default is
@@ -236,7 +236,7 @@ class Slapd:
             )
         return command
 
-    def setup_rundir(self):
+    def _setup_rundir(self):
         """
         creates rundir structure
 
@@ -281,7 +281,7 @@ class Slapd:
         self.logger.info("Found available port %d", port)
         return port
 
-    def gen_config(self):
+    def _gen_config(self):
         """
         generates a slapd.conf and returns it as one string
 
@@ -307,7 +307,7 @@ class Slapd:
         """Loads the slapd.d configuration."""
         self.logger.debug("importing configuration: %s", self._slapd_conf)
 
-        self.slapadd(self.gen_config(), ["-n0"])
+        self.slapadd(self._gen_config(), ["-n0"])
         ldif_paths = [
             schema if os.path.exists(schema) else os.path.join(self.SCHEMADIR, schema)
             for schema in self.schemas
@@ -384,7 +384,7 @@ class Slapd:
 
         atexit.register(self.stop)
         self._cleanup_rundir()
-        self.setup_rundir()
+        self._setup_rundir()
         self._write_config()
         self._test_config()
         self._start_slapd()
@@ -445,8 +445,16 @@ class Slapd:
         return authc_args
 
     def _cli_popen(
-        self, ldapcommand, extra_args=None, ldap_uri=None, stdin_data=None
+        self,
+        ldapcommand,
+        extra_args=None,
+        ldap_uri=None,
+        stdin_data=None,
+        expected=0,
     ):
+        if isinstance(expected, int):
+            expected = [expected]
+
         if ldap_uri is None:
             ldap_uri = self.default_ldap_uri
 
@@ -464,74 +472,122 @@ class Slapd:
         self.logger.debug(
             "stdin_data=%s", stdin_data.decode("utf-8") if stdin_data else stdin_data
         )
+
         if proc.stdout is not None:
             self.logger.debug("stdout=%s", proc.stdout.decode("utf-8"))
+
         if proc.stderr is not None:
             self.logger.debug("stderr=%s", proc.stderr.decode("utf-8"))
-        if proc.returncode != 0:
-            raise RuntimeError("Process failed: {!r}".format(" ".join(args)))
+
+        if proc.returncode not in expected:
+            raise RuntimeError(
+                "Unexpected process return code (expected {}, got {}): {!r}".format(
+                    expected, proc.returncode, " ".join(args)
+                )
+            )
         return proc
 
-    def ldapwhoami(self, extra_args=None):
+    def ldapwhoami(self, extra_args=None, expected=0):
         """
         Runs ldapwhoami on this slapd instance
 
-        :return: A :class:`subprocess.CompletedProcess` with the execution data.
-        """
-        return self._cli_popen(self.PATH_LDAPWHOAMI, extra_args=extra_args)
+        :param extra_args: Extra argument to pass to *ldapwhoami*.
+        :param expected: Expected return code. Defaults to `0`.
+        :type expected: An integer or a list of integers
 
-    def ldapadd(self, ldif, extra_args=None):
+        :return: A :class:`subprocess.CompletedProcess` with the *ldapwhoami* execution data.
+        """
+        return self._cli_popen(
+            self.PATH_LDAPWHOAMI, extra_args=extra_args, expected=expected
+        )
+
+    def ldapadd(self, ldif, extra_args=None, expected=0):
         """
         Runs ldapadd on this slapd instance, passing it the ldif content
 
-        :return: A :class:`subprocess.CompletedProcess` with the execution data.
+        :param ldif: The ldif content to pass to the *ldapadd* standard input.
+        :param extra_args: Extra argument to pass to *ldapadd*.
+        :param expected: Expected return code. Defaults to `0`.
+        :type expected: An integer or a list of integers
+
+        :return: A :class:`subprocess.CompletedProcess` with the *ldapadd* execution data.
         """
         return self._cli_popen(
-            self.PATH_LDAPADD, extra_args=extra_args, stdin_data=ldif.encode("utf-8")
+            self.PATH_LDAPADD,
+            extra_args=extra_args,
+            stdin_data=ldif.encode("utf-8") if ldif else None,
+            expected=expected,
         )
 
-    def ldapmodify(self, ldif, extra_args=None):
+    def ldapmodify(self, ldif, extra_args=None, expected=0):
         """
         Runs ldapadd on this slapd instance, passing it the ldif content
 
-        :return: A :class:`subprocess.CompletedProcess` with the execution data.
+        :param ldif: The ldif content to pass to the *ldapmodify* standard input.
+        :param extra_args: Extra argument to pass to *ldapmodify*.
+        :param expected: Expected return code. Defaults to `0`.
+        :type expected: An integer or a list of integers
+
+        :return: A :class:`subprocess.CompletedProcess` with the *ldapmodify* execution data.
         """
         return self._cli_popen(
-            self.PATH_LDAPMODIFY, extra_args=extra_args, stdin_data=ldif.encode("utf-8")
+            self.PATH_LDAPMODIFY,
+            extra_args=extra_args,
+            stdin_data=ldif.encode("utf-8") if ldif else None,
+            expected=expected,
         )
 
-    def ldapdelete(self, dn, recursive=False, extra_args=None):
+    def ldapdelete(self, dn, recursive=False, extra_args=None, expected=0):
         """
         Runs ldapdelete on this slapd instance, deleting 'dn'
 
-        :return: A :class:`subprocess.CompletedProcess` with the execution data.
+        :param dn: The distinguished name of the element to delete.
+        :param recursive: Whether to delete sub-elements. Defaults to `False`.
+        :param extra_args: Extra argument to pass to *ldapdelete*.
+        :param expected: Expected return code. Defaults to `0`.
+        :type expected: An integer or a list of integers
+
+        :return: A :class:`subprocess.CompletedProcess` with the *ldapdelete* execution data.
         """
         if extra_args is None:
             extra_args = []
         if recursive:
             extra_args.append("-r")
         extra_args.append(dn)
-        return self._cli_popen(self.PATH_LDAPDELETE, extra_args=extra_args)
+        return self._cli_popen(
+            self.PATH_LDAPDELETE, extra_args=extra_args, expected=expected
+        )
 
-    def slapadd(self, ldif, extra_args=None):
+    def slapadd(self, ldif, extra_args=None, expected=0):
         """
         Runs slapadd on this slapd instance, passing it the ldif content
 
-        :return: A :class:`subprocess.CompletedProcess` with the execution data.
+        :param ldif: The ldif content to pass to the *slapadd* standard input.
+        :param extra_args: Extra argument to pass to *slapadd*.
+        :param expected: Expected return code. Defaults to `0`.
+        :type expected: An integer or a list of integers
+
+        :return: A :class:`subprocess.CompletedProcess` with the *slapadd* execution data.
         """
         return self._cli_popen(
             self.PATH_SLAPADD,
             stdin_data=ldif.encode("utf-8") if ldif else None,
             extra_args=extra_args,
+            expected=expected,
         )
 
-    def slapcat(self, extra_args=None):
+    def slapcat(self, extra_args=None, expected=0):
         """
         Runs slapadd on this slapd instance, passing it the ldif content
 
-        :return: A :class:`subprocess.CompletedProcess` with the execution data.
+        :param extra_args: Extra argument to pass to *slapcat*.
+        :param expected: Expected return code. Defaults to `0`.
+        :type expected: An integer or a list of integers
+
+        :return: A :class:`subprocess.CompletedProcess` with the *slapcat* execution data.
         """
         return self._cli_popen(
             self.PATH_SLAPCAT,
             extra_args=extra_args,
+            expected=expected,
         )

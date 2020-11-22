@@ -1,4 +1,5 @@
 import slapd
+import pytest
 
 
 def test_nominal_case():
@@ -69,5 +70,17 @@ def test_commands():
         "dn: ou=home,dc=slapd-test,dc=python-ldap,dc=org"
         not in server.slapcat().stdout.decode("utf-8")
     )
+
+    server.stop()
+
+
+def test_return_codes():
+    server = slapd.Slapd()
+    server.start()
+
+    with pytest.raises(RuntimeError):
+        server.ldapadd("bad ldif")
+    server.ldapadd("bad ldif", expected=247)
+    server.ldapadd("bad ldif", expected=(0, 247))
 
     server.stop()
