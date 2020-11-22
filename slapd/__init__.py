@@ -162,7 +162,7 @@ class Slapd:
         self.suffix = suffix
         self.root_cn = root_cn
         self.root_pw = root_pw
-        self.hostname = "127.0.0.1"
+        self.host = host or "127.0.0.1"
 
         self._proc = None
         self.port = port or self._avail_tcpport()
@@ -172,7 +172,7 @@ class Slapd:
         )
         self._slapd_conf = os.path.join(self.testrundir, "slapd.d")
         self._db_directory = os.path.join(self.testrundir, "openldap-data")
-        self.ldap_uri = "ldap://%s:%d/" % (host or self.hostname, self.port)
+        self.ldap_uri = "ldap://%s:%d/" % (self.host, self.port)
         self.debug = debug
         have_ldapi = hasattr(socket, "AF_UNIX")
         if have_ldapi:
@@ -273,7 +273,7 @@ class Slapd:
         """
         sock = socket.socket()
         try:
-            sock.bind((self.hostname, 0))
+            sock.bind((self.host, 0))
             port = sock.getsockname()[1]
         finally:
             sock.close()
