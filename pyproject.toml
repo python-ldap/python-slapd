@@ -78,16 +78,19 @@ skipsdist=true
 [testenv]
 whitelist_externals = poetry
 commands =
+    pip install poetry
     poetry install
     poetry run pytest {posargs}
 
 [testenv:doc]
 commands =
+    pip install poetry
     poetry install --extras doc
     poetry run sphinx-build doc build/sphinx/html
 
 [testenv:coverage]
 commands =
+    pip install poetry
     poetry install
     poetry run coverage erase
     poetry run pytest --cov {posargs}
