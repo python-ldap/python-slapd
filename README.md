@@ -1,6 +1,9 @@
 # python-slapd
 Controls your OpenLDAP process in a pythonic way. Install with `pip install slapd`.
 
+```
+pip install slapd
+```
 
 ```python
 >>> import slapd
