@@ -1,4 +1,4 @@
-# python-slapd
+# python-slapd [![Documentation Status](https://readthedocs.org/projects/slapd/badge/?version=latest)](https://slapd.readthedocs.io/en/latest/?badge=latest)
 Controls your OpenLDAP process in a pythonic way.
 
 ```
