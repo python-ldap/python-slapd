@@ -13,3 +13,13 @@ pip install slapd
 'dn:cn=manager,dc=slapd-test,dc=python-ldap,dc=org\n'
 >>> process.stop()
 ```
+
+# Troubleshouting
+
+On distributions like Ubuntu, apparmor may restrict *slapd* to access some files that
+*python-slapd* has generated. This situation can be solved by passing slapd in complain mode:
+
+```bash
+sudo apt install --yes apparmor-utils
+sudo aa-complain /usr/sbin/slapd
+```
