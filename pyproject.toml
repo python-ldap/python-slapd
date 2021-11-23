@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: Implementation :: CPython",
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -72,7 +73,7 @@ doctest_optionflags= "ALLOW_UNICODE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 legacy_tox_ini = """
 [tox]
 isolated_build = true
-envlist = doc,py36,py37,py38,py39,coverage
+envlist = doc,py36,py37,py38,py39,py310,coverage
 skipsdist=true
 
 [testenv]
