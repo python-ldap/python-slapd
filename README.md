@@ -14,7 +14,7 @@ pip install slapd
 >>> process.stop()
 ```
 
-# Troubleshouting
+# Troubleshooting
 
 On distributions like Ubuntu, apparmor may restrict *slapd* to access some files that
 *python-slapd* has generated. This situation can be solved by passing slapd in complain mode:
