@@ -78,6 +78,42 @@ def test_commands():
     server.stop()
 
 
+def test_ldapadd_config_database():
+    server = slapd.Slapd()
+    server.start()
+
+    assert "dn: cn={1}myschema,cn=schema,cn=config" not in server.slapcat(
+        ["-n0"]
+    ).stdout.decode("utf-8")
+
+    ldif = (
+        "dn: cn=myschema,cn=schema,cn=config\n"
+        "objectClass: olcSchemaConfig\n"
+        "cn: myschema\n"
+        "olcAttributeTypes: (  1.3.6.1.4.1.56207.1.1.1 NAME 'myAttribute'\n"
+        "        EQUALITY caseExactMatch\n"
+        "        ORDERING caseExactOrderingMatch\n"
+        "        SUBSTR caseExactSubstringsMatch\n"
+        "        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15\n"
+        "        SINGLE-VALUE\n"
+        "        USAGE userApplications\n"
+        "        X-ORIGIN 'mySchema1' )\n"
+        "olcObjectClasses: ( 1.3.6.1.4.1.56207.1.1.2 NAME 'myObject'\n"
+        "        SUP top\n"
+        "        STRUCTURAL\n"
+        "        MUST  (\n"
+        "              cn $\n"
+        "              myAttribute\n"
+        "        )\n"
+        "        X-ORIGIN 'mySchema2' )\n"
+    )
+    server.ldapadd(ldif)
+
+    assert "dn: cn={1}myschema,cn=schema,cn=config" in server.slapcat(
+        ["-n0"]
+    ).stdout.decode("utf-8")
+
+
 def test_return_codes():
     server = slapd.Slapd()
     server.start()

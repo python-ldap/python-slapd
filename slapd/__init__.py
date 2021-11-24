@@ -29,6 +29,11 @@ objectClass: olcModuleList
 cn: module
 olcModuleLoad: back_%(database)s
 
+dn: olcDatabase=config,cn=config
+objectClass: olcDatabaseConfig
+olcDatabase: config
+olcRootDN: %(rootdn)s
+
 dn: olcDatabase=%(database)s,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcMdbConfig
