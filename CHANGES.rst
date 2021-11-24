@@ -10,6 +10,7 @@ Added
 *****
 
 - Added `ldapsearch` command. :pr:`4`
+- The root DN can add schemas. :pr:`5`
 
 [0.1.0] - 2021-04-02
 ====================
