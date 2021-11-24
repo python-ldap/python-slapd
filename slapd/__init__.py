@@ -126,6 +126,8 @@ class Slapd:
 
     :param root_pw: The root user password. The default value is `password`.
 
+    :param configuration_template: An optional inital database template.
+
     :param datadir_prefix: The prefix of the temporary directory where the slapd
         configuration and data will be stored. The default value is `python-ldap-test`.
 
@@ -157,6 +159,7 @@ class Slapd:
         suffix="dc=slapd-test,dc=python-ldap,dc=org",
         root_cn="Manager",
         root_pw="password",
+        configuration_template=None,
         datadir_prefix=None,
         debug=None,
     ):
@@ -178,6 +181,7 @@ class Slapd:
         self._slapd_conf = os.path.join(self.testrundir, "slapd.d")
         self._db_directory = os.path.join(self.testrundir, "openldap-data")
         self.ldap_uri = "ldap://%s:%d/" % (self.host, self.port)
+        self.configuration_template = configuration_template or SLAPD_CONF_TEMPLATE
         self.debug = debug
         have_ldapi = hasattr(socket, "AF_UNIX")
         if have_ldapi:
@@ -307,7 +311,7 @@ class Slapd:
             "servercert": self.servercert,
             "serverkey": self.serverkey,
         }
-        return SLAPD_CONF_TEMPLATE % config_dict
+        return self.configuration_template % config_dict
 
     def _write_config(self):
         """Loads the slapd.d configuration."""
