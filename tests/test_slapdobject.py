@@ -33,6 +33,8 @@ def test_commands():
         "dn:cn=manager,dc=slapd-test,dc=python-ldap,dc=org\n"
         == server.ldapwhoami().stdout.decode("utf-8")
     )
+    server.ldapsearch("ou=home", "dc=slapd-test,dc=python-ldap,dc=org", expected=32)
+
     ldif = (
         "dn: dc=slapd-test,dc=python-ldap,dc=org\n"
         "objectClass: dcObject\n"
@@ -54,6 +56,8 @@ def test_commands():
         "dn: ou=home,dc=slapd-test,dc=python-ldap,dc=org"
         in server.slapcat().stdout.decode("utf-8")
     )
+
+    server.ldapsearch("ou=home", "dc=slapd-test,dc=python-ldap,dc=org")
 
     ldif = (
         "dn: ou=home,dc=slapd-test,dc=python-ldap,dc=org\n"

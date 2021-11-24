@@ -213,6 +213,7 @@ class Slapd:
         self.PATH_LDAPADD = self._find_command("ldapadd")
         self.PATH_LDAPDELETE = self._find_command("ldapdelete")
         self.PATH_LDAPMODIFY = self._find_command("ldapmodify")
+        self.PATH_LDAPSEARCH = self._find_command("ldapsearch")
         self.PATH_LDAPWHOAMI = self._find_command("ldapwhoami")
         self.PATH_SLAPADD = self._find_command("slapadd")
         self.PATH_SLAPCAT = self._find_command("slapcat")
@@ -556,6 +557,27 @@ class Slapd:
         extra_args.append(dn)
         return self._cli_popen(
             self.PATH_LDAPDELETE, extra_args=extra_args, expected=expected
+        )
+
+    def ldapsearch(self, filter, searchbase=None, extra_args=None, expected=0):
+        """
+        Runs search on this slapd instance
+
+        :param filter: The search filter.
+        :param base: The starting point for the search.
+        :param extra_args: Extra argument to pass to *ldapdelete*.
+        :param expected: Expected return code. Defaults to `0`.
+        :type expected: An integer or a list of integers
+
+        :return: A :class:`subprocess.CompletedProcess` with the *ldapdelete* execution data.
+        """
+        if extra_args is None:
+            extra_args = []
+        if searchbase:
+            extra_args.extend(["-b", searchbase])
+        extra_args.append(filter)
+        return self._cli_popen(
+            self.PATH_LDAPSEARCH, extra_args=extra_args, expected=expected
         )
 
     def slapadd(self, ldif, extra_args=None, expected=0):
