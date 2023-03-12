@@ -476,9 +476,7 @@ class Slapd:
         args += extra_args or []
 
         self.logger.debug("Run command: %r", " ".join(args))
-        proc = subprocess.run(
-            args, input=stdin_data, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
+        proc = subprocess.run(args, input=stdin_data, capture_output=True)
         self.logger.debug(
             "stdin_data=%s", stdin_data.decode("utf-8") if stdin_data else stdin_data
         )
