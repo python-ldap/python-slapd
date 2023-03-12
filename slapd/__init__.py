@@ -42,6 +42,7 @@ olcSuffix: %(suffix)s
 olcRootDN: %(rootdn)s
 olcRootPW: %(rootpw)s
 olcDbDirectory: %(directory)s
+olcDbMaxSize: 1000000000
 """
 
 
