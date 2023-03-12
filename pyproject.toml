@@ -11,11 +11,11 @@ license = "MIT"
 keywords = ["ldap", "slapd"]
 classifiers = [
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: Implementation :: CPython",
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -30,28 +30,23 @@ repository = "https://gitlab.com/python-ldap/python-slapd"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.6, <4"
+python = ">=3.7, <4"
 
-recommonmark = {version = "*", optional=true}
-sphinx = {version = "*", optional=true}
-sphinx-rtd-theme = {version = "*", optional=true}
-sphinx-issues = {version = "*", optional=true}
-
-[tool.poetry.extras]
-doc = [
-    "recommonmark",
-    "sphinx",
-    "sphinx-rtd-theme",
-    "sphinx-issues",
-]
-
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 coverage = "*"
 pytest = "*"
 pytest-cov = "*"
 tox = "*"
 mock = "*"
 
+[tool.poetry.group.doc]
+optional = true
+
+[tool.poetry.group.doc.dependencies]
+recommonmark = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+sphinx-issues = "*"
 
 [tool.coverage.run]
 source = [
@@ -72,7 +67,7 @@ doctest_optionflags= "ALLOW_UNICODE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 legacy_tox_ini = """
 [tox]
 isolated_build = true
-envlist = doc,py36,py37,py38,py39,py310,coverage
+envlist = doc,py37,py38,py39,py310,py311,coverage
 skipsdist=true
 
 [testenv]
@@ -85,7 +80,7 @@ commands =
 [testenv:doc]
 commands =
     pip install poetry
-    poetry install --extras doc
+    poetry install --only doc
     poetry run sphinx-build doc build/sphinx/html
 
 [testenv:coverage]

@@ -10,3 +10,4 @@ htmlcov
 build
 dist
 python-ldap-test*
+poetry.lock
