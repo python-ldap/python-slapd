@@ -8,6 +8,11 @@ Added
 
 - Implement `init_tree` method :pr:`8`
 
+Removed
+*******
+
+- Stop supporting python 3.7
+
 [0.1.3] - 2023-03-12
 ====================
 
