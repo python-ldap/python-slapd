@@ -35,17 +35,9 @@ def test_commands():
     )
     server.ldapsearch("ou=home", "dc=slapd-test,dc=python-ldap,dc=org", expected=32)
 
+    server.init_tree()
+
     ldif = (
-        "dn: dc=slapd-test,dc=python-ldap,dc=org\n"
-        "objectClass: dcObject\n"
-        "objectClass: organization\n"
-        "dc: slapd-test\n"
-        "o: slapd-test\n"
-        "\n"
-        "dn: cn=Manager,dc=slapd-test,dc=python-ldap,dc=org\n"
-        "objectClass: applicationProcess\n"
-        "cn: Manager\n"
-        "\n"
         "dn: ou=home,dc=slapd-test,dc=python-ldap,dc=org\n"
         "objectClass: organizationalUnit\n"
         "ou: home\n"

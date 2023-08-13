@@ -621,3 +621,25 @@ class Slapd:
             extra_args=extra_args,
             expected=expected,
         )
+
+    def init_tree(self):
+        """
+        Creates the organization and applicationProcess object.
+        """
+        suffix_dc = self.suffix.split(",")[0][3:]
+        return self.ldapadd(
+            "\n".join(
+                [
+                    "dn: " + self.suffix,
+                    "objectClass: dcObject",
+                    "objectClass: organization",
+                    "dc: " + suffix_dc,
+                    "o: " + suffix_dc,
+                    "",
+                    "dn: " + self.root_dn,
+                    "objectClass: applicationProcess",
+                    "cn: " + self.root_cn,
+                ]
+            )
+            + "\n"
+        )
