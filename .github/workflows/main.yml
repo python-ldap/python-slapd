@@ -21,8 +21,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+      - name: Update apt repository
+        run: sudo apt update
       - name: Install apt dependencies
-        run: sudo apt-get --yes install apparmor-utils libsasl2-dev python-dev-is-python3 libldap2-dev libssl-dev slapd ldap-utils
+        run: sudo apt install --yes apparmor-utils libsasl2-dev python-dev-is-python3 libldap2-dev libssl-dev slapd ldap-utils
       - name: App armor configuration for slapd
         run: sudo aa-complain /usr/sbin/slapd
       - name: Install python dependencies
