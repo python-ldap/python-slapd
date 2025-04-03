@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import toml
-import mock
 import os
 import sys
+from unittest import mock
+
+import toml
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../slapd"))
@@ -41,7 +42,7 @@ copyright = "2020, python-ldap"
 author = "python-ldap"
 
 release = config["tool"]["poetry"]["version"]
-version = "%s.%s" % tuple(map(int, release.split(".")[:2]))
+version = ".".join(tuple(map(int, release.split(".")[:2])))
 language = None
 exclude_patterns = []
 pygments_style = "sphinx"

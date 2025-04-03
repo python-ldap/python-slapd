@@ -1,5 +1,6 @@
-import slapd
 import pytest
+
+import slapd
 
 
 def test_nominal_case():

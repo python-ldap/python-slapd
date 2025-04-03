@@ -1,10 +1,10 @@
+import atexit
+import logging
 import os
 import socket
+import subprocess
 import sys
 import time
-import subprocess
-import logging
-import atexit
 from logging.handlers import SysLogHandler
 from shutil import which
 from urllib.parse import quote_plus
@@ -47,7 +47,7 @@ olcDbMaxSize: 1000000000
 
 
 def _add_sbin(path):
-    """Add /sbin and related directories to a command search path"""
+    """Add /sbin and related directories to a command search path."""
     directories = path.split(os.pathsep)
     if sys.platform != "win32":
         for sbin in "/usr/local/sbin", "/sbin", "/usr/sbin":
@@ -62,10 +62,7 @@ def combinedlogger(
     syslogger_format="%(levelname)s %(message)s",
     consolelogger_format="%(asctime)s %(levelname)s %(message)s",
 ):
-    """
-    Returns a combined SysLogHandler/StreamHandler logging instance
-    with formatters
-    """
+    """Return a combined SysLogHandler/StreamHandler logging instance with formatters."""
     if "LOGLEVEL" in os.environ:
         log_level = os.environ["LOGLEVEL"]
         try:
@@ -94,8 +91,7 @@ def combinedlogger(
 
 
 class Slapd:
-    """
-    Controller class for a slapd instance, OpenLDAP's server.
+    """Controller class for a slapd instance, OpenLDAP's server.
 
     This class creates a temporary data store for slapd, runs it
     listening on a private Unix domain socket and TCP port,
@@ -177,17 +173,17 @@ class Slapd:
         self.port = port or self._avail_tcpport()
         self.server_id = self.port % 4096
         self.testrundir = os.path.join(
-            self.TMPDIR, "%s-%d" % (datadir_prefix or "python-ldap-test", self.port)
+            self.TMPDIR, f"{datadir_prefix or 'python-ldap-test'}-{self.port}"
         )
         self._slapd_conf = os.path.join(self.testrundir, "slapd.d")
         self._db_directory = os.path.join(self.testrundir, "openldap-data")
-        self.ldap_uri = "ldap://%s:%d/" % (self.host, self.port)
+        self.ldap_uri = f"ldap://{self.host}:{self.port}/"
         self.configuration_template = configuration_template or SLAPD_CONF_TEMPLATE
         self.debug = debug
         have_ldapi = hasattr(socket, "AF_UNIX")
         if have_ldapi:
             ldapi_path = os.path.join(self.testrundir, "ldapi")
-            self.ldapi_uri = "ldapi://%s" % quote_plus(ldapi_path)
+            self.ldapi_uri = f"ldapi://{quote_plus(ldapi_path)}"
             self.default_ldap_uri = self.ldapi_uri
             # use SASL/EXTERNAL via LDAPI when invoking OpenLDAP CLI tools
             self.cli_sasl_external = True
@@ -217,7 +213,7 @@ class Slapd:
 
     @property
     def root_dn(self):
-        return "cn={self.root_cn},{self.suffix}".format(self=self)
+        return f"cn={self.root_cn},{self.suffix}"
 
     def _find_commands(self):
         self.PATH_LDAPADD = self._find_command("ldapadd")
@@ -242,14 +238,13 @@ class Slapd:
         command = which(cmd, path=path)
         if command is None:
             raise ValueError(
-                "Command '{}' not found. Set the {} environment variable to "
-                "override slapd's search path.".format(cmd, var_name)
+                f"Command '{cmd}' not found. Set the {var_name} environment variable to "
+                "override slapd's search path."
             )
         return command
 
     def _setup_rundir(self):
-        """
-        creates rundir structure
+        """Create rundir structure.
 
         for setting up a custom directory structure you have to override
         this method
@@ -261,9 +256,7 @@ class Slapd:
         os.mkdir(dir_name)
 
     def _cleanup_rundir(self):
-        """
-        Recursively delete whole directory specified by `path'
-        """
+        """Recursively delete whole directory specified by `path'."""
         if not os.path.exists(self.testrundir):
             return
 
@@ -279,9 +272,7 @@ class Slapd:
         self.logger.info("cleaned-up %s", self.testrundir)
 
     def _avail_tcpport(self):
-        """
-        find an available port for TCP connection
-        """
+        """Find an available port for TCP connection."""
         sock = socket.socket()
         try:
             sock.bind((self.host, 0))
@@ -293,8 +284,7 @@ class Slapd:
         return port
 
     def _gen_config(self):
-        """
-        generates a slapd.conf and returns it as one string
+        """Generate a slapd.conf and returns it as one string.
 
         for generating specific static configuration files you have to
         override this method
@@ -315,7 +305,7 @@ class Slapd:
         return self.configuration_template % config_dict
 
     def _write_config(self):
-        """Loads the slapd.d configuration."""
+        """Load the slapd.d configuration."""
         self.logger.debug("importing configuration: %s", self._slapd_conf)
 
         self.slapadd(self._gen_config(), ["-n0"])
@@ -347,9 +337,7 @@ class Slapd:
         self.logger.info("config ok: %s", self._slapd_conf)
 
     def _start_slapd(self):
-        """
-        Spawns/forks the slapd process
-        """
+        """Spawns/forks the slapd process."""
         urls = [self.ldap_uri]
         if self.ldapi_uri:
             urls.append(self.ldapi_uri)
@@ -386,10 +374,7 @@ class Slapd:
         raise RuntimeError("slapd did not start properly")  # pragma: no cover
 
     def start(self):
-        """
-        Starts the slapd server process running, and waits for it to come up.
-        """
-
+        """Start the slapd server process running, and waits for it to come up."""
         if self._proc is not None:
             return
 
@@ -407,9 +392,7 @@ class Slapd:
         )
 
     def stop(self):
-        """
-        Stops the slapd server, and waits for it to terminate and cleans up
-        """
+        """Stop the slapd server, and waits for it to terminate and cleans up."""
         if self._proc is not None:
             self.logger.debug("stopping slapd with pid %d", self._proc.pid)
             self._proc.terminate()
@@ -418,21 +401,19 @@ class Slapd:
         atexit.unregister(self.stop)
 
     def restart(self):
-        """
-        Restarts the slapd server with same data
-        """
+        """Restarts the slapd server with same data."""
         self._proc.terminate()
         self.wait()
         self._start_slapd()
 
     def wait(self):
-        """Waits for the slapd process to terminate by itself."""
+        """Wait for the slapd process to terminate by itself."""
         if self._proc:
             self._proc.wait()
             self._stopped()
 
     def _stopped(self):
-        """Called when the slapd server is known to have terminated"""
+        """Is called when the slapd server is known to have terminated."""
         if self._proc is not None:
             self.logger.info("slapd[%d] terminated", self._proc.pid)
             self._proc = None
@@ -479,14 +460,19 @@ class Slapd:
         self.logger.debug("Run command: %r", " ".join(args))
         proc = subprocess.run(args, input=stdin_data, capture_output=True)
         self.logger.debug(
-            "stdin_data=%s", stdin_data.decode("utf-8", errors="replace") if stdin_data else stdin_data
+            "stdin_data=%s",
+            stdin_data.decode("utf-8", errors="replace") if stdin_data else stdin_data,
         )
 
         if proc.stdout is not None:
-            self.logger.debug("stdout=%s", proc.stdout.decode("utf-8", errors="replace"))
+            self.logger.debug(
+                "stdout=%s", proc.stdout.decode("utf-8", errors="replace")
+            )
 
         if proc.stderr is not None:
-            self.logger.debug("stderr=%s", proc.stderr.decode("utf-8", errors="replace"))
+            self.logger.debug(
+                "stderr=%s", proc.stderr.decode("utf-8", errors="replace")
+            )
 
         if proc.returncode not in expected:
             raise RuntimeError(
@@ -497,8 +483,7 @@ class Slapd:
         return proc
 
     def ldapwhoami(self, extra_args=None, expected=0):
-        """
-        Runs ldapwhoami on this slapd instance
+        """Run ldapwhoami on this slapd instance.
 
         :param extra_args: Extra argument to pass to *ldapwhoami*.
         :param expected: Expected return code. Defaults to `0`.
@@ -511,8 +496,7 @@ class Slapd:
         )
 
     def ldapadd(self, ldif, extra_args=None, expected=0):
-        """
-        Runs ldapadd on this slapd instance, passing it the ldif content
+        """Run ldapadd on this slapd instance, passing it the ldif content.
 
         :param ldif: The ldif content to pass to the *ldapadd* standard input.
         :param extra_args: Extra argument to pass to *ldapadd*.
@@ -529,8 +513,7 @@ class Slapd:
         )
 
     def ldapmodify(self, ldif, extra_args=None, expected=0):
-        """
-        Runs ldapadd on this slapd instance, passing it the ldif content
+        """Run ldapadd on this slapd instance, passing it the ldif content.
 
         :param ldif: The ldif content to pass to the *ldapmodify* standard input.
         :param extra_args: Extra argument to pass to *ldapmodify*.
@@ -547,8 +530,7 @@ class Slapd:
         )
 
     def ldapdelete(self, dn, recursive=False, extra_args=None, expected=0):
-        """
-        Runs ldapdelete on this slapd instance, deleting 'dn'
+        """Run ldapdelete on this slapd instance, deleting 'dn'.
 
         :param dn: The distinguished name of the element to delete.
         :param recursive: Whether to delete sub-elements. Defaults to `False`.
@@ -568,8 +550,7 @@ class Slapd:
         )
 
     def ldapsearch(self, filter, searchbase=None, extra_args=None, expected=0):
-        """
-        Runs search on this slapd instance
+        """Run search on this slapd instance.
 
         :param filter: The search filter.
         :param base: The starting point for the search.
@@ -589,8 +570,7 @@ class Slapd:
         )
 
     def slapadd(self, ldif, extra_args=None, expected=0):
-        """
-        Runs slapadd on this slapd instance, passing it the ldif content
+        """Run slapadd on this slapd instance, passing it the ldif content.
 
         :param ldif: The ldif content to pass to the *slapadd* standard input.
         :param extra_args: Extra argument to pass to *slapadd*.
@@ -607,8 +587,7 @@ class Slapd:
         )
 
     def slapcat(self, extra_args=None, expected=0):
-        """
-        Runs slapadd on this slapd instance, passing it the ldif content
+        """Run slapadd on this slapd instance, passing it the ldif content.
 
         :param extra_args: Extra argument to pass to *slapcat*.
         :param expected: Expected return code. Defaults to `0`.
@@ -623,9 +602,7 @@ class Slapd:
         )
 
     def init_tree(self):
-        """
-        Creates the organization and applicationProcess object.
-        """
+        """Create the organization and applicationProcess object."""
         suffix_dc = self.suffix.split(",")[0][3:]
         return self.ldapadd(
             "\n".join(
