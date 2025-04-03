@@ -1,9 +1,8 @@
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool]
-[tool.poetry]
+[project]
 name = "slapd"
 version = "0.1.5"
 description = "Controls a slapd process in a pythonic way"
@@ -20,33 +19,41 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-authors = ["python-ldap team <python-ldap@python.org>"]
-maintainers = [
-    "Éloi Rivard <eloi.rivard@aquilenet.fr>",
-]
-homepage = "https://slapd.readthedocs.io/en/latest/"
-documentation = "https://slapd.readthedocs.io/en/latest/"
-repository = "https://gitlab.com/python-ldap/python-slapd"
+authors = [{name="python-ldap team", email="python-ldap@python.org"}]
+maintainers = [{name="Éloi Rivard", email="eloi.rivard@aquilenet.fr"}]
 readme = "README.md"
+requires-python = ">=3.9"
 
-[tool.poetry.dependencies]
-python = "^3.8"
+[project.urls]
+homepage = "https://slapd.readthedocs.io/en/latest"
+documentation = "https://slapd.readthedocs.io/en/latest"
+repository = "https://gitlab.com/python-ldap/python-slapd"
 
-[tool.poetry.group.dev.dependencies]
-coverage = "*"
-pytest = "*"
-pytest-cov = "*"
-tox = "*"
-mock = "*"
+[dependency-groups]
+dev = [
+    "coverage",
+    "pytest",
+    "pytest-cov",
+    "tox",
+    "mock",
+]
 
-[tool.poetry.group.doc]
-optional = true
+doc = [
+    "recommonmark",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "sphinx-issues",
+]
 
-[tool.poetry.group.doc.dependencies]
-recommonmark = "*"
-sphinx = "*"
-sphinx-rtd-theme = "*"
-sphinx-issues = "*"
+[tool.hatch.build]
+include = [
+    "slapd/",
+    "doc/",
+    "tests/",
+    "CHANGES.rst",
+    "LICENSE.md",
+    "README.md",
+]
 
 [tool.coverage.run]
 source = [
@@ -94,30 +101,31 @@ norecursedirs = ".tox tests/perf .eggs .git build doc"
 doctest_optionflags= "ALLOW_UNICODE IGNORE_EXCEPTION_DETAIL ELLIPSIS"
 
 [tool.tox]
-legacy_tox_ini = """
-[tox]
-isolated_build = true
-envlist = doc,py38,py39,py310,py311,py312,coverage
-skipsdist=true
+env_list = [
+    "style",
+    "py39",
+    "py310",
+    "py311",
+    "py312",
+    "py313",
+    "doc",
+    "coverage",
+]
 
-[testenv]
-whitelist_externals = poetry
-commands =
-    pip install poetry
-    poetry install
-    poetry run pytest {posargs}
+[tool.tox.env_run_base]
+dependency_groups = ["dev"]
+commands = [
+    ["pytest", "{posargs}"],
+]
 
-[testenv:doc]
-commands =
-    pip install poetry
-    poetry install --only doc
-    poetry run sphinx-build doc build/sphinx/html
+[tool.tox.env.doc]
+dependency_groups = ["doc"]
+commands = [
+    ["sphinx-build", "--builder", "html", "--fail-on-warning", "doc", "build/sphinx/html"],
+]
 
-[testenv:coverage]
-commands =
-    pip install poetry
-    poetry install
-    poetry run coverage erase
-    poetry run pytest --cov {posargs}
-    poetry run coverage html
-"""
+[tool.tox.env.coverage]
+commands = [
+    ["pytest", "--cov", "--cov-report", "term:skip-covered", "{posargs}"],
+    ["coverage", "html"],
+]

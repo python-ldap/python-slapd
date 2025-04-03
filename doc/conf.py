@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+import datetime
 import os
 import sys
+from importlib import metadata
 from unittest import mock
-
-import toml
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../slapd"))
@@ -19,7 +19,6 @@ class Mock(mock.MagicMock):
 MOCK_MODULES = ["ldap"]
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
-config = toml.load("../pyproject.toml")
 
 # -- General configuration ------------------------------------------------
 
@@ -38,12 +37,11 @@ templates_path = ["_templates"]
 source_suffix = [".rst"]
 master_doc = "index"
 project = "slapd"
-copyright = "2020, python-ldap"
+year = datetime.datetime.now().strftime("%Y")
+copyright = f"{year}, python-ldap"
 author = "python-ldap"
 
-release = config["tool"]["poetry"]["version"]
-version = ".".join(tuple(map(int, release.split(".")[:2])))
-language = None
+version = metadata.version("slapd")
 exclude_patterns = []
 pygments_style = "sphinx"
 todo_include_todos = False
@@ -71,7 +69,7 @@ htmlhelp_basename = "slapddoc"
 
 latex_elements = {}
 latex_documents = [
-    (master_doc, "slapd.tex", "slapd Documentation", "python-ldap", "manual")
+    (master_doc, "slapd.tex", "slapd Documentation", "python-slapd", "manual")
 ]
 
 # -- Options for manual page output ---------------------------------------
