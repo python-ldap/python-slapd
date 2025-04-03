@@ -342,7 +342,7 @@ class Slapd:
         ]
         p = subprocess.run(popen_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode != 0:
-            self.logger.error(p.stdout.decode("utf-8"))
+            self.logger.error(p.stdout.decode("utf-8", errors="replace"))
             raise RuntimeError("configuration test failed")
         self.logger.info("config ok: %s", self._slapd_conf)
 
@@ -479,14 +479,14 @@ class Slapd:
         self.logger.debug("Run command: %r", " ".join(args))
         proc = subprocess.run(args, input=stdin_data, capture_output=True)
         self.logger.debug(
-            "stdin_data=%s", stdin_data.decode("utf-8") if stdin_data else stdin_data
+            "stdin_data=%s", stdin_data.decode("utf-8", errors="replace") if stdin_data else stdin_data
         )
 
         if proc.stdout is not None:
-            self.logger.debug("stdout=%s", proc.stdout.decode("utf-8"))
+            self.logger.debug("stdout=%s", proc.stdout.decode("utf-8", errors="replace"))
 
         if proc.stderr is not None:
-            self.logger.debug("stderr=%s", proc.stderr.decode("utf-8"))
+            self.logger.debug("stderr=%s", proc.stderr.decode("utf-8", errors="replace"))
 
         if proc.returncode not in expected:
             raise RuntimeError(
