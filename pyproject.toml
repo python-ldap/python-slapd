@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slapd"
-version = "0.1.5"
+version = "0.1.6"
 description = "Controls a slapd process in a pythonic way"
 license = "MIT"
 keywords = ["ldap", "slapd"]
